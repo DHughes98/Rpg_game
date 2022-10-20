@@ -14,6 +14,8 @@ class Player(pygame.sprite.Sprite):
         #graphics setup
         self.import_player_assets()
         self.status ='down'
+        self.frame_index = 0
+        self.animation_speed = 0.15
 
         # movement
         self.direction = pygame.math.Vector2()
@@ -25,13 +27,14 @@ class Player(pygame.sprite.Sprite):
 
     def import_player_assets(self):
         character_path = 'graphics\player/'
-        self.animations = {'up': [], 'down':[], 'left': [],    'right': [], 'right_idle':[], 'left_idle': [], 'up_idle': [], 'down_idle': [], 'right_attack':[], 'left_attack': [], 'up_attack': [], 'down_attack': [] }
+        self.animations = {'up': [], 'down':[], 'left': [],   'right': [], 'right_idle':[], 'left_idle': [], 'up_idle': [], 'down_idle': [], 'right_attack':[], 'left_attack': [], 'up_attack': [], 'down_attack': [] }
         
         for animation in self.animations.keys():
             full_path = character_path + animation
             self.animations[animation] = import_folder(full_path)
 
     def input(self):
+        
         keys = pygame.key.get_pressed()
         #movement input
         if keys[pygame.K_UP]:
@@ -75,12 +78,12 @@ class Player(pygame.sprite.Sprite):
             self.direction.y = 0
             if not 'attack' in self.status:
                 if 'idle' in self.status:
-                    self.status = self.status.replace('idle','_attack')
+                    self.status = self.status.replace('idle','attack')
                 else:
                     self.status = self.status + '_attack'
         else:
             if 'attack' in self.status:
-                self.status = self.status.replace('attack','')
+                self.status = self.status.replace('_attack','')
 
 
 
@@ -120,6 +123,15 @@ class Player(pygame.sprite.Sprite):
             if current_time - self.attack_time >= self.attack_cooldown:
                 self.attacking = False
 
+    def animate(self):
+        animation = self.animations[self.status]
+        self.frame_index += self.animation_speed
+        if self.frame_index >= len(animation):
+            self.frame_index = 0
+
+        self.image = animation[int(self.frame_index)]
+        self.rect = self.image.get_rect(center = self.hitbox.center)
+
 
 
 
@@ -127,4 +139,5 @@ class Player(pygame.sprite.Sprite):
         self.input()
         self.cooldowns()
         self.get_status()
+        self.animate()
         self.move(self.speed)
